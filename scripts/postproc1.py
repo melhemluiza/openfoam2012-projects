@@ -12,7 +12,7 @@ def run_openfoam_postprocess(case_dir):
     """
     Executa o comando postProcess do OpenFOAM.
     """
-    print("Iniciando o pós-processamento do OpenFOAM...")
+    print("🚀 Iniciando o pós-processamento do OpenFOAM...")
     try:
         result = subprocess.run(
             ["postProcess", "-func", "sampleDict", "-latestTime"],
@@ -21,282 +21,492 @@ def run_openfoam_postprocess(case_dir):
             text=True,
             check=True,
         )
-        print("Pós-processamento do OpenFOAM concluído com sucesso.")
+        print("✅ Pós-processamento do OpenFOAM concluído com sucesso!")
         if result.stderr:
-            print("Avisos do postProcess:")
+            print("📝 Avisos do postProcess:")
             print(result.stderr)
     except subprocess.CalledProcessError as e:
-        print(f"Erro durante o pós-processamento do OpenFOAM: {e}")
-        print(f"Saída de erro: {e.stderr}")
+        print(f"❌ Erro durante o pós-processamento do OpenFOAM: {e}")
+        print(f"🔍 Saída de erro: {e.stderr}")
         sys.exit(1)
     except FileNotFoundError:
         print(
-            "Erro: Comando 'postProcess' não encontrado. Verifique o ambiente OpenFOAM."
+            "❌ Erro: Comando 'postProcess' não encontrado. Verifique o ambiente OpenFOAM."
         )
         sys.exit(1)
 
 
-def calculate_analytical_solution(z_points, wa0):
+def calculate_analytical_solution(z_points, wa0, rho_total, Dab):
     """
-    Calcula a solução analítica para rho_a usando a equação:
-    rho_a = 1 - 1/(exp(C1*z - C1))
-    onde C1 = ln(1 - rho_a0)
+    Calcula TODAS as variáveis analíticas a partir da solução de rho_a.
     """
-    rho_a0 = float(wa0)
-    C1 = math.log(1 - rho_a0)
-    rho_a_analytical = 1 - 1 / (np.exp(C1 * z_points - C1))
-    return rho_a_analytical
+    rho_a0 = float(wa0) * float(rho_total)
+
+    rho_a_analytical = rho_total - ((rho_total - rho_a0) / ((1 - wa0) ** z_points))
+    rho_b_analytical = rho_total - rho_a_analytical
+    wa_analytical = rho_a_analytical / rho_total
+    wb_analytical = rho_b_analytical / rho_total
+
+    grad_rho_a_analytical = ((rho_total - rho_a0) * np.log(1 - wa0)) / (
+        (1 - wa0) ** z_points
+    )
+    grad_rho_b_analytical = -grad_rho_a_analytical
+
+    ja_analytical = -Dab * grad_rho_a_analytical
+    jb_analytical = -Dab * grad_rho_b_analytical
+
+    U_analytical = (1 / (1 - wa_analytical)) * (ja_analytical / rho_total)
+    Na_analytical = ja_analytical + rho_a_analytical * U_analytical
+    Nb_analytical = jb_analytical + rho_b_analytical * U_analytical
+    U_ver_analytical = (Na_analytical + Nb_analytical) / rho_total
+
+    return {
+        "rho_a": rho_a_analytical,
+        "rho_b": rho_b_analytical,
+        "wa": wa_analytical,
+        "wb": wb_analytical,
+        "ja": ja_analytical,
+        "jb": jb_analytical,
+        "U": U_analytical,
+        "Na": Na_analytical,
+        "Nb": Nb_analytical,
+        "U_ver": U_ver_analytical,
+    }
 
 
-def plot_and_export_openfoam_data(
-    case_dir, field_names, set_name="myCloud", output_dir="postProcessing/sampleDict"
-):
+def get_user_parameters():
     """
-    Lê os dados de amostragem do OpenFOAM, plota gráficos e exporta para CSV.
+    Solicita parâmetros do usuário para cálculo analítico.
     """
-    print(f"Processando dados para o caso: {case_dir}")
-
-    # Solicitar valor de rho_a0 do usuário
     try:
-        rho_a0 = float(
-            input("Digite o valor de rho_a0 para cálculo da solução analítica: ")
-        )
-        print(f"Usando rho_a0 = {rho_a0}")
+        wa0 = float(input("🎯 Digite o valor de wa0 (fração mássica inicial de A): "))
+        rho_total = float(input("📊 Digite o valor de rho_total (densidade total): "))
+        Dab = float(input("🔬 Digite o valor de Dab (coeficiente de difusão): "))
+        return wa0, rho_total, Dab
     except ValueError:
-        print("Erro: Valor inválido. Usando rho_a0 = 0.9 como padrão.")
-        rho_a0 = 0.9
-
-    post_processing_path = os.path.join(case_dir, output_dir)
-    if not os.path.exists(post_processing_path):
         print(
-            f"Erro: Diretório de pós-processamento não encontrado em {post_processing_path}"
+            "⚠️  Erro: Valores inválidos. Usando valores padrão: wa0=0.9, rho_total=1.0, Dab=0.1"
         )
-        return
+        return 0.9, 1.0, 0.1
 
-    time_dirs = [
-        d
-        for d in os.listdir(post_processing_path)
-        if os.path.isdir(os.path.join(post_processing_path, d))
-    ]
-    if not time_dirs:
-        print(f"Erro: Nenhum diretório de tempo encontrado em {post_processing_path}")
-        return
 
-    latest_time = sorted(time_dirs, key=float)[-1]
-    data_path_prefix = os.path.join(post_processing_path, latest_time, set_name)
+def read_openfoam_data(file_path):
+    """
+    Lê arquivos de dados do OpenFOAM e retorna DataFrame.
+    """
+    try:
+        # Lê o arquivo OpenFOAM (formato com espaços)
+        df = pd.read_csv(file_path, sep=r"\s+", comment="#", header=None)
+        print(
+            f"📄 Arquivo {os.path.basename(file_path)}: {df.shape[1]} colunas, {df.shape[0]} pontos"
+        )
+        return df
+    except Exception as e:
+        print(f"❌ Erro ao ler arquivo {file_path}: {e}")
+        return None
 
-    all_data = pd.DataFrame()
 
-    # Usar o arquivo Na.xy para obter as coordenadas (estrutura mais confiável)
-    na_file = f"{data_path_prefix}_Na.xy"
-    if os.path.exists(na_file):
-        print(f"Lendo coordenadas do arquivo: {os.path.basename(na_file)}")
-        try:
-            df_na = pd.read_csv(na_file, sep=r"\s+", comment="#", header=None)
-            # Estrutura: Z, X, Y, Na
-            if df_na.shape[1] >= 3:
-                all_data["z"] = df_na.iloc[:, 0]  # Coluna 0 = Z
-                all_data["x"] = df_na.iloc[:, 1]  # Coluna 1 = X
-                all_data["y"] = df_na.iloc[:, 2]  # Coluna 2 = Y
-                print("Coordenadas lidas do arquivo Na.xy")
-                if "Na" in field_names:
-                    all_data["Na"] = df_na.iloc[:, 3]  # Coluna 3 = Na
-                    print("Campo Na lido do arquivo")
-        except Exception as e:
-            print(f"Erro ao ler coordenadas do arquivo Na: {e}")
-            return
-    else:
-        print("Erro: Arquivo Na.xy não encontrado para ler coordenadas")
-        return
+def create_plots_directory(case_dir):
+    """
+    Cria diretório para os plots se não existir.
+    """
+    plots_dir = os.path.join(case_dir, "plots")
+    if not os.path.exists(plots_dir):
+        os.makedirs(plots_dir)
+        print(f"📁 Diretório de plots criado: {plots_dir}")
+    return plots_dir
 
-    # Ler o arquivo combinado que contém rho, rho_a, rho_b
-    combined_file = f"{data_path_prefix}_rho_rho_a_rho_b.xy"
-    if os.path.exists(combined_file):
-        print(f"Lendo campos do arquivo combinado: {os.path.basename(combined_file)}")
-        try:
-            df_combined = pd.read_csv(
-                combined_file, sep=r"\s+", comment="#", header=None
+
+def parse_field_groups(field_args):
+    """
+    Converte argumentos como 'wawb' em grupos de campos ['wa', 'wb']
+    """
+    field_mapping = {
+        "wa": "wa",
+        "wb": "wb",
+        "rho_a": "rho_a",
+        "rho_b": "rho_b",
+        "ja": "ja",
+        "jb": "jb",
+        "U": "U",
+        "Na": "Na",
+        "Nb": "Nb",
+        "U_ver": "U_ver",
+    }
+
+    field_groups = []
+
+    for arg in field_args:
+        # Verifica se é um grupo composto (ex: 'wawb')
+        individual_fields = []
+        temp_arg = arg
+
+        # Tenta encontrar campos individuais no argumento composto
+        for field_name in [
+            "U_ver",
+            "rho_a",
+            "rho_b",
+            "wa",
+            "wb",
+            "ja",
+            "jb",
+            "U",
+            "Na",
+            "Nb",
+        ]:
+            if field_name in temp_arg:
+                individual_fields.append(field_name)
+                temp_arg = temp_arg.replace(field_name, "")
+
+        # Se encontrou campos individuais, usa eles
+        if individual_fields:
+            field_groups.append(individual_fields)
+        else:
+            # Se não, trata como campo individual
+            field_groups.append([arg])
+
+    return field_groups
+
+
+def plot_field_group(data, field_group, plots_dir, wa0, rho_total, Dab, group_name):
+    """
+    Plota um grupo de campos na mesma imagem.
+    """
+    print(f"🎨 Plotando grupo {group_name}: {field_group}")
+
+    fig, ax = plt.subplots(figsize=(12, 8))
+
+    colors = plt.cm.tab10(np.linspace(0, 1, len(field_group) * 2))
+    markers_num = ["^", "s", "o", "d", "v", "<", ">", "p"]
+    markers_ana = ["s", "d", "o", "^", ">", "v", "<", "p"]
+
+    has_data = False
+
+    for idx, field in enumerate(field_group):
+        numerical_field = field
+        analytical_field = f"{field}_analytical"
+
+        color_num = colors[idx * 2]
+        color_ana = colors[idx * 2 + 1]
+        marker_num = markers_num[idx % len(markers_num)]
+        marker_ana = markers_ana[idx % len(markers_ana)]
+
+        # Plotar dados numéricos se disponíveis
+        if numerical_field in data.columns:
+            valid_mask = ~(
+                data[numerical_field].isna() | np.isinf(data[numerical_field])
             )
-            print(f"Arquivo combinado tem {df_combined.shape[1]} colunas")
-
-            # ESTRUTURA CORRIGIDA: Já temos coordenadas, só pegar os campos
-            # Coluna 0: Z (JÁ TEMOS - IGNORAR)
-            # Coluna 1: rho
-            # Coluna 2: rho_a
-            # Coluna 3: rho_b
-
-            if df_combined.shape[1] >= 4:
-                print("Adicionando campos rho, rho_a e rho_b...")
-                # IGNORAR coluna 0 (já temos Z das coordenadas)
-                if "rho" in field_names:
-                    all_data["rho"] = df_combined.iloc[:, 1]  # Coluna 1 = rho
-                    print(f"Campo rho lido (coluna 1)")
-                if "rho_a" in field_names:
-                    all_data["rho_a"] = df_combined.iloc[:, 2]  # Coluna 2 = rho_a
-                    print(f"Campo rho_a lido (coluna 2)")
-                if "rho_b" in field_names:
-                    all_data["rho_b"] = df_combined.iloc[:, 3]  # Coluna 3 = rho_b
-                    print(f"Campo rho_b lido (coluna 3)")
-            else:
-                print(
-                    f"Aviso: Arquivo combinado tem apenas {df_combined.shape[1]} colunas"
+            if valid_mask.any():
+                ax.plot(
+                    data["z"][valid_mask],
+                    data[numerical_field][valid_mask],
+                    marker_num,
+                    color=color_num,
+                    markersize=8,
+                    label=f"Numérico: {field}",
+                    alpha=0.8,
+                    linewidth=2,
                 )
+                has_data = True
+                print(f"  ✅ Plotando numérico: {field}")
 
-        except Exception as e:
-            print(f"Erro ao ler arquivo combinado: {e}")
+        # Plotar dados analíticos se disponíveis
+        if analytical_field in data.columns:
+            valid_mask = ~(
+                data[analytical_field].isna() | np.isinf(data[analytical_field])
+            )
+            if valid_mask.any():
+                ax.plot(
+                    data["z"][valid_mask],
+                    data[analytical_field][valid_mask],
+                    marker_ana,
+                    color=color_ana,
+                    markersize=6,
+                    label=f"Analítico: {field}",
+                    alpha=0.8,
+                    linestyle="--",
+                    linewidth=2,
+                )
+                has_data = True
+                print(f"  ✅ Plotando analítico: {field}")
 
-    if all_data.empty:
-        print("Nenhum dado válido foi lido para plotagem ou exportação.")
+    if not has_data:
+        print(f"  ⚠️  Nenhum dado válido encontrado para o grupo {field_group}")
+        plt.close()
         return
 
-    # Calcular solução analítica e erro absoluto
-    if "rho_a" in all_data.columns:
-        print("Calculando solução analítica e erro absoluto...")
-        all_data["rho_a_analytical"] = calculate_analytical_solution(
-            all_data["z"], rho_a0
-        )
-        all_data["erro_absoluto"] = all_data["rho_a"] - all_data["rho_a_analytical"]
-        print("Solução analítica e erro absoluto calculados")
-
-    print(f"Dados lidos com sucesso: {len(all_data)} pontos")
-    print(f"Colunas disponíveis: {list(all_data.columns)}")
-
-    # DEBUG: Verificar valores
-    print("\n=== DEBUG DOS DADOS ===")
-    print("Primeiros 5 pontos:")
-    for i in range(min(5, len(all_data))):
-        print(f"Ponto {i}: Z={all_data['z'].iloc[i]:.15f}")
-        print(f"  rho_a numérico = {all_data['rho_a'].iloc[i]:.15f}")
-        if "rho_a_analytical" in all_data.columns:
-            print(f"  rho_a analítico = {all_data['rho_a_analytical'].iloc[i]:.15f}")
-            print(f"  erro absoluto = {all_data['erro_absoluto'].iloc[i]:.15f}")
-    print("=== FIM DEBUG ===\n")
-
-    # Exportar dados para CSV com 15 casas decimais
-    csv_output_path = os.path.join(case_dir, f"{set_name}_sampled_data.csv")
-
-    # Definir colunas para exportar (incluindo analítico e erro se existirem)
-    cols_to_export = [
-        col for col in ["x", "y", "z"] if col in all_data.columns
-    ] + field_names
-    if "rho_a_analytical" in all_data.columns:
-        cols_to_export.append("rho_a_analytical")
-    if "erro_absoluto" in all_data.columns:
-        cols_to_export.append("erro_absoluto")
-
-    # Exportar com 15 casas decimais
-    all_data[cols_to_export].to_csv(
-        csv_output_path, index=False, sep=";", decimal=",", float_format="%.15f"
+    ax.set_xlabel("Posição (z)")
+    ax.set_ylabel("Valores")
+    ax.legend(loc="best")
+    ax.grid(True, alpha=0.3)
+    ax.set_xlim(0, 1)
+    ax.set_title(
+        f"Comparação - {group_name} (wa0={wa0}, ρ_total={rho_total}, Dab={Dab})"
     )
-    print(f"Dados exportados para CSV (15 casas decimais): {csv_output_path}")
 
-    # Plotar gráfico
-    plot_from_csv(case_dir, field_names, set_name, rho_a0)
+    plot_filename = f"{group_name}_comparison.png"
+    plot_path = os.path.join(plots_dir, plot_filename)
+    plt.savefig(plot_path, dpi=300, bbox_inches="tight")
+    print(f"  💾 Salvo: {plot_filename}")
+
+    plt.close()
 
 
-def plot_from_csv(case_dir, field_names, set_name="myCloud", rho_a0=0.9):
+def calculate_errors(data, field_groups):
     """
-    Lê os dados do CSV gerado e plota comparando com analítico
+    Calcula erros absolutos e relativos entre soluções numérica e analítica.
     """
-    print(f"\n--- PLOTANDO DO CSV ---")
+    print("📊 Calculando erros...")
 
-    csv_file = os.path.join(case_dir, f"{set_name}_sampled_data.csv")
+    errors = {}
 
-    if not os.path.exists(csv_file):
-        print(f"Erro: Arquivo CSV não encontrado: {csv_file}")
-        return
+    # Extrair todos os campos individuais dos grupos
+    all_fields = []
+    for group in field_groups:
+        all_fields.extend(group)
 
-    # Ler dados do CSV
-    data = pd.read_csv(csv_file, sep=";", decimal=",")
-    print(f"Dados lidos do CSV: {len(data)} pontos")
-    print(f"Colunas disponíveis: {list(data.columns)}")
+    for field in set(all_fields):  # Remove duplicatas
+        numerical_field = field
+        analytical_field = f"{field}_analytical"
 
-    # Verificar se temos a coluna Z e os campos solicitados
-    if "z" not in data.columns:
-        print("Erro: Coluna 'z' não encontrada no CSV")
-        return
-
-    # Plotar gráficos - Apenas perfis de concentração (excluindo 'Na' e 'rho_b')
-    fields_to_plot = [f for f in field_names if f not in ["Na", "rho_b"]]
-
-    if not fields_to_plot:
-        print("Aviso: Nenhum campo de concentração selecionado para plotagem.")
-        return
-
-    plt.figure(figsize=(12, 8))
-
-    # Plotar dados numéricos (OpenFOAM) - TRIÂNGULOS
-    for field in fields_to_plot:
-        if field in data.columns:
-            print(f"Plotando {field}: Z vs {field}")
-            plt.plot(
-                data["z"],
-                data[field],
-                "^",  # Triângulo
-                color="hotpink",
-                markersize=8,
-                label=f"Numérico: {field}",
-                alpha=0.8,
+        if numerical_field in data.columns and analytical_field in data.columns:
+            # Remover NaN e infinitos
+            mask = ~(
+                data[numerical_field].isna()
+                | data[analytical_field].isna()
+                | np.isinf(data[numerical_field])
+                | np.isinf(data[analytical_field])
             )
 
-    # Plotar solução analítica - QUADRADOS (se disponível no CSV ou calcular)
-    if "rho_a_analytical" in data.columns:
-        plt.plot(
-            data["z"],
-            data["rho_a_analytical"],
-            "s",  # Quadrado
-            color="purple",
-            markersize=6,
-            label=f"Analítico: ρ_a (ρ_a0={rho_a0})",
-            alpha=0.8,
-            fillstyle="none",
+            if mask.any():
+                num_values = data[numerical_field][mask]
+                ana_values = data[analytical_field][mask]
+
+                # Erro absoluto
+                absolute_error = np.abs(num_values - ana_values)
+                max_abs_error = np.max(absolute_error)
+                mean_abs_error = np.mean(absolute_error)
+
+                # Erro relativo (evitando divisão por zero)
+                relative_error = np.abs(
+                    (num_values - ana_values) / (ana_values + 1e-12)
+                )
+                max_rel_error = np.max(relative_error)
+                mean_rel_error = np.mean(relative_error)
+
+                errors[field] = {
+                    "max_absolute_error": max_abs_error,
+                    "mean_absolute_error": mean_abs_error,
+                    "max_relative_error": max_rel_error,
+                    "mean_relative_error": mean_rel_error,
+                }
+
+                print(f"  📈 {field}:")
+                print(f"     Erro Absoluto Máximo: {max_abs_error:.6e}")
+                print(f"     Erro Absoluto Médio: {mean_abs_error:.6e}")
+                print(f"     Erro Relativo Máximo: {max_rel_error:.6e}")
+                print(f"     Erro Relativo Médio: {mean_rel_error:.6e}")
+
+    return errors
+
+
+def main():
+    """
+    Função principal para orquestrar o pós-processamento e a plotagem.
+    """
+    case_dir = os.getcwd()
+
+    # Executar postProcess
+    run_openfoam_postprocess(case_dir)
+
+    # Obter parâmetros do usuário
+    wa0, rho_total, Dab = get_user_parameters()
+
+    # Encontrar os arquivos de dados mais recentes
+    postprocessing_dir = os.path.join(case_dir, "postProcessing", "sampleDict")
+
+    # Buscar as pastas de tempo
+    time_dirs = glob.glob(os.path.join(postprocessing_dir, "*"))
+    if not time_dirs:
+        print(f"❌ Erro: Nenhuma pasta de tempo encontrada em {postprocessing_dir}")
+        sys.exit(1)
+
+    latest_time_dir = max(time_dirs, key=os.path.getctime)
+    print(f"📂 Diretório de tempo mais recente: {os.path.basename(latest_time_dir)}")
+
+    # Arquivos específicos que existem
+    cloud1_file = os.path.join(latest_time_dir, "myCloud_rho_rho_a_rho_b_wa_wb.xy")
+    cloud2_file = os.path.join(latest_time_dir, "myCloud_Na_Nb_U_U_ver_ja_jb.xy")
+
+    if not os.path.exists(cloud1_file):
+        print(f"❌ Erro: Arquivo {cloud1_file} não encontrado")
+        sys.exit(1)
+    if not os.path.exists(cloud2_file):
+        print(f"❌ Erro: Arquivo {cloud2_file} não encontrado")
+        sys.exit(1)
+
+    print(f"📂 Arquivo 1 encontrado: {os.path.basename(cloud1_file)}")
+    print(f"📂 Arquivo 2 encontrado: {os.path.basename(cloud2_file)}")
+
+    # Ler o primeiro arquivo (rho, rho_a, rho_b, wa, wb)
+    df_cloud1 = read_openfoam_data(cloud1_file)
+    if df_cloud1 is None:
+        sys.exit(1)
+
+    # Atribuir nomes às colunas baseado na descrição
+    if df_cloud1.shape[1] >= 6:  # z, rho, rho_a, rho_b, wa, wb
+        df_cloud1.columns = ["z", "rho", "rho_a", "rho_b", "wa", "wb"][
+            : df_cloud1.shape[1]
+        ]
+    else:
+        print(
+            f"⚠️  Arquivo 1 tem apenas {df_cloud1.shape[1]} colunas, usando nomes genéricos"
         )
-    elif "rho_a" in fields_to_plot:
-        # Calcular analítico se não estiver no CSV
-        z_points = data["z"]
-        rho_a_analytical = calculate_analytical_solution(z_points, rho_a0)
-        plt.plot(
-            z_points,
-            rho_a_analytical,
-            "s",  # Quadrado
-            color="purple",
-            markersize=6,
-            label=f"Analítico: ρ_a (ρ_a0={rho_a0})",
-            alpha=0.8,
-            fillstyle="none",
+        df_cloud1.columns = [f"col_{i}" for i in range(df_cloud1.shape[1])]
+        # Assumindo que a primeira coluna é sempre z
+        if df_cloud1.shape[1] >= 1:
+            df_cloud1 = df_cloud1.rename(columns={"col_0": "z"})
+
+    # Ler o segundo arquivo (Na, Nb, U, U_ver, ja, jb) - CORRIGIDO: 19 colunas
+    df_cloud2 = read_openfoam_data(cloud2_file)
+    if df_cloud2 is None:
+        sys.exit(1)
+
+    # CORREÇÃO: 19 colunas ao invés de 21 (jb só tem componente z)
+    expected_columns_cloud2 = [
+        "z",
+        "x",
+        "y",
+        "Na_z",
+        "Na_x",
+        "Na_y",
+        "Nb_z",
+        "Nb_x",
+        "Nb_y",
+        "U_z",
+        "U_x",
+        "U_y",
+        "U_ver_z",
+        "U_ver_x",
+        "U_ver_y",
+        "ja_z",
+        "ja_x",
+        "ja_y",
+        "jb_z",  # Apenas jb_z, sem jb_x e jb_y
+    ]
+
+    if df_cloud2.shape[1] == len(expected_columns_cloud2):
+        df_cloud2.columns = expected_columns_cloud2
+    else:
+        print(
+            f"⚠️  Arquivo 2 tem {df_cloud2.shape[1]} colunas (esperadas {len(expected_columns_cloud2)}), usando nomes genéricos"
+        )
+        df_cloud2.columns = [f"col_{i}" for i in range(df_cloud2.shape[1])]
+        # Assumindo que a primeira coluna é sempre z
+        if df_cloud2.shape[1] >= 1:
+            df_cloud2 = df_cloud2.rename(columns={"col_0": "z"})
+
+    # Combinar os dois DataFrames baseado na coluna z
+    data_combined = pd.merge(df_cloud1, df_cloud2, on="z", how="inner")
+    print(f"📊 Dados combinados: {data_combined.shape[0]} pontos comuns")
+
+    # Calcular magnitudes para campos vetoriais - CORRIGIDO para jb
+    if all(col in data_combined.columns for col in ["U_x", "U_y", "U_z"]):
+        data_combined["U"] = np.sqrt(
+            data_combined["U_x"] ** 2
+            + data_combined["U_y"] ** 2
+            + data_combined["U_z"] ** 2
         )
 
-    plt.xlabel("Posição (z)")
-    plt.ylabel("Concentração mássica (ρ)")
-    plt.title(f"Comparação: Solução Numérica vs Analítica (ρ_a0={rho_a0})")
-    plt.legend()
-    plt.grid(True, alpha=0.3)
-    plt.xlim(0, 1)
-    plt.ylim(0, 1)
-    plt.tight_layout()
+    if all(col in data_combined.columns for col in ["ja_x", "ja_y", "ja_z"]):
+        data_combined["ja"] = np.sqrt(
+            data_combined["ja_x"] ** 2
+            + data_combined["ja_y"] ** 2
+            + data_combined["ja_z"] ** 2
+        )
 
-    plot_output_path = os.path.join(
-        case_dir, f"{set_name}_concentration_analytical_plot.png"
-    )
-    plt.savefig(plot_output_path, dpi=300)
-    print(f"Gráfico salvo em: {plot_output_path}")
-    plt.close()
-    print("--- PLOTAGEM CONCLUÍDA ---")
+    # CORREÇÃO: jb só tem componente z
+    if "jb_z" in data_combined.columns:
+        data_combined["jb"] = np.abs(
+            data_combined["jb_z"]
+        )  # Usar valor absoluto já que é 1D
+
+    if all(col in data_combined.columns for col in ["Na_x", "Na_y", "Na_z"]):
+        data_combined["Na"] = np.sqrt(
+            data_combined["Na_x"] ** 2
+            + data_combined["Na_y"] ** 2
+            + data_combined["Na_z"] ** 2
+        )
+
+    if all(col in data_combined.columns for col in ["Nb_x", "Nb_y", "Nb_z"]):
+        data_combined["Nb"] = np.sqrt(
+            data_combined["Nb_x"] ** 2
+            + data_combined["Nb_y"] ** 2
+            + data_combined["Nb_z"] ** 2
+        )
+
+    if all(col in data_combined.columns for col in ["U_ver_x", "U_ver_y", "U_ver_z"]):
+        data_combined["U_ver"] = np.sqrt(
+            data_combined["U_ver_x"] ** 2
+            + data_combined["U_ver_y"] ** 2
+            + data_combined["U_ver_z"] ** 2
+        )
+
+    # Calcular a solução analítica
+    z_points = data_combined["z"]
+    analytical_solutions = calculate_analytical_solution(z_points, wa0, rho_total, Dab)
+
+    # Adicionar soluções analíticas ao DataFrame
+    for col, values in analytical_solutions.items():
+        data_combined[f"{col}_analytical"] = values
+
+    # Configurar pandas para mostrar mais casas decimais
+    pd.set_option("display.float_format", "{:.16e}".format)
+    np.set_printoptions(precision=16)
+
+    # Salvar o DataFrame combinado em um arquivo CSV para depuração
+    combined_csv_path = os.path.join(case_dir, "combined_data.csv")
+    data_combined.to_csv(combined_csv_path, index=False, float_format="%.16e")
+    print(f"💾 DataFrame combinado salvo em: {combined_csv_path}")
+    print(f"📋 Colunas disponíveis: {list(data_combined.columns)}")
+
+    # Mostrar primeiras linhas com alta precisão
+    print("📊 Primeiras 3 linhas dos dados combinados:")
+    print(data_combined.head(3).to_string(float_format="%.16e"))
+
+    # Criar diretório de plots
+    plots_dir = create_plots_directory(case_dir)
+
+    # Obter grupos de campos dos argumentos da linha de comando
+    if len(sys.argv) < 2:
+        print("Uso: python3 postproc.py <grupo1> <grupo2> ...")
+        print("Exemplo: python3 postproc.py wawb NaNb jajb UU_ver")
+        print("Campos disponíveis: rho_a, rho_b, wa, wb, U, ja, jb, Na, Nb, U_ver")
+        sys.exit(1)
+
+    field_args = sys.argv[1:]
+    field_groups = parse_field_groups(field_args)
+
+    print(f"📋 Grupos de campos a plotar: {field_groups}")
+
+    # Calcular erros
+    errors = calculate_errors(data_combined, field_groups)
+
+    # Salvar erros em arquivo
+    errors_csv_path = os.path.join(plots_dir, "errors_analysis.csv")
+    errors_df = pd.DataFrame(errors).T
+    errors_df.to_csv(errors_csv_path, float_format="%.16e")
+    print(f"💾 Análise de erros salva em: {errors_csv_path}")
+
+    # Plotar cada grupo de campos
+    for i, field_group in enumerate(field_groups):
+        group_name = "_".join(field_group)
+        plot_field_group(
+            data_combined, field_group, plots_dir, wa0, rho_total, Dab, group_name
+        )
+
+    print("🎉 Processo concluído!")
 
 
 if __name__ == "__main__":
-    if len(sys.argv) == 1:
-        print("Erro: Especifique pelo menos um campo para processar.")
-        print("Uso: python3 postproc.py <campo1> [campo2] ...")
-        print("Exemplo: python3 postproc.py rho_a")
-        sys.exit(1)
-
-    case_directory = "."
-    fields_to_process = sys.argv[1:]
-
-    print(f"Processando caso no diretório atual: {os.path.abspath(case_directory)}")
-    print(f"Campos: {fields_to_process}")
-
-    run_openfoam_postprocess(case_directory)
-    plot_and_export_openfoam_data(case_directory, fields_to_process)
-    print("Processo de automação completo concluído.")
+    main()
