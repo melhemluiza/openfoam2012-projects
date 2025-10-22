@@ -22,8 +22,8 @@ solvers
         solver          PBiCGStab;
         preconditioner  DIC;
         //smoother        GaussSeidel;
-        tolerance       1e-16;
-        relTol          0;
+        tolerance       1e-14;
+        relTol          0.01;
     }
 }
 

@@ -20,13 +20,9 @@ foamCleanTutorials -self
 
 # Remove arquivos do pós-processamento
 echo "Removing post-processing files ..."
-rm -f sampled_data.csv
-rm -f myCloud_U_comparison.png
-rm -f myCloud_U_ver_comparison.png
-rm -f myCloud_wa_comparison.png
-rm -f myCloud_wb_comparison.png
-rm -f myCloud_Na_comparison.png
-rm -f myCloud_Nb_comparison.png
+rm -rf plots
+rm -f combined_data.csv
+rm -f log.binaryDiffusionFoam
 
 # Remove diretório completo de pós-processamento (opcional)
 if [ -d "postProcessing" ]

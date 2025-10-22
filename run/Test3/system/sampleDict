@@ -61,12 +61,18 @@ sets
 
 fields
 (
-    Na
-    Nb
+    wa
+    wb
     rho_a
     rho_b
     rho
-    v
+    Na
+    Nb
+    ja
+    jb
+    U
+    U_ver
+
 );
 
 

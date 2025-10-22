@@ -9,9 +9,9 @@ Build  : _7bdb509494-20201222 OPENFOAM=2012
 Arch   : "LSB;label=32;scalar=64"
 Exec   : binaryDiffusionFoam
 Date   : Oct 22 2025
-Time   : 00:02:07
+Time   : 03:33:16
 Host   : luiza
-PID    : 32688
+PID    : 48790
 I/O    : uncollated
 Case   : /home/luiza/OpenFOAM/luiza-v2012/run/Tese/Test1
 nProcs : 1
