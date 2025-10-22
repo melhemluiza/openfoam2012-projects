@@ -1,0 +1,6 @@
+{
+  "files.associations": {
+    "scalarTransportFoam.C": "cpp",
+    "binaryDiffusionFoam.C": "cpp"
+  }
+}

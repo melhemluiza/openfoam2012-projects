@@ -1,0 +1,3 @@
+rhoscalarTransportFoam.C
+
+EXE = $(FOAM_USER_APPBIN)/rhoscalarTransportFoam
