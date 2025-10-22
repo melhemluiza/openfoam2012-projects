@@ -254,11 +254,10 @@ def plot_field_group(data, field_group, plots_dir, wa0, rho_total, Dab, group_na
 
 def calculate_errors(data, field_groups):
     """
-    Calcula erros absolutos e relativos entre soluções numérica e analítica.
+    Calcula erros absolutos e relativos entre soluções numérica e analítica
+    e adiciona como colunas no DataFrame.
     """
-    print("📊 Calculando erros...")
-
-    errors = {}
+    print("📊 Calculando erros e adicionando ao DataFrame...")
 
     # Extrair todos os campos individuais dos grupos
     all_fields = []
@@ -279,35 +278,25 @@ def calculate_errors(data, field_groups):
             )
 
             if mask.any():
-                num_values = data[numerical_field][mask]
-                ana_values = data[analytical_field][mask]
-
-                # Erro absoluto
-                absolute_error = np.abs(num_values - ana_values)
-                max_abs_error = np.max(absolute_error)
-                mean_abs_error = np.mean(absolute_error)
-
-                # Erro relativo (evitando divisão por zero)
-                relative_error = np.abs(
-                    (num_values - ana_values) / (ana_values + 1e-12)
+                # Calcular erro absoluto para cada ponto
+                data[f"{field}_abs_error"] = np.abs(
+                    data[numerical_field] - data[analytical_field]
                 )
-                max_rel_error = np.max(relative_error)
-                mean_rel_error = np.mean(relative_error)
 
-                errors[field] = {
-                    "max_absolute_error": max_abs_error,
-                    "mean_absolute_error": mean_abs_error,
-                    "max_relative_error": max_rel_error,
-                    "mean_relative_error": mean_rel_error,
-                }
+                # Calcular erro relativo para cada ponto (evitando divisão por zero)
+                with np.errstate(divide="ignore", invalid="ignore"):
+                    relative_error = np.abs(
+                        (data[numerical_field] - data[analytical_field])
+                        / (np.abs(data[analytical_field]) + 1e-12)
+                    )
+                    # Substituir infinitos por NaN
+                    relative_error = relative_error.replace([np.inf, -np.inf], np.nan)
 
-                print(f"  📈 {field}:")
-                print(f"     Erro Absoluto Máximo: {max_abs_error:.6e}")
-                print(f"     Erro Absoluto Médio: {mean_abs_error:.6e}")
-                print(f"     Erro Relativo Máximo: {max_rel_error:.6e}")
-                print(f"     Erro Relativo Médio: {mean_rel_error:.6e}")
+                data[f"{field}_rel_error"] = relative_error
 
-    return errors
+                print(f"  ✅ Adicionadas colunas de erro para: {field}")
+
+    return data
 
 
 def main():
@@ -464,19 +453,6 @@ def main():
     pd.set_option("display.float_format", "{:.16e}".format)
     np.set_printoptions(precision=16)
 
-    # Salvar o DataFrame combinado em um arquivo CSV para depuração
-    combined_csv_path = os.path.join(case_dir, "combined_data.csv")
-    data_combined.to_csv(combined_csv_path, index=False, float_format="%.16e")
-    print(f"💾 DataFrame combinado salvo em: {combined_csv_path}")
-    print(f"📋 Colunas disponíveis: {list(data_combined.columns)}")
-
-    # Mostrar primeiras linhas com alta precisão
-    print("📊 Primeiras 3 linhas dos dados combinados:")
-    print(data_combined.head(3).to_string(float_format="%.16e"))
-
-    # Criar diretório de plots
-    plots_dir = create_plots_directory(case_dir)
-
     # Obter grupos de campos dos argumentos da linha de comando
     if len(sys.argv) < 2:
         print("Uso: python3 postproc.py <grupo1> <grupo2> ...")
@@ -489,14 +465,21 @@ def main():
 
     print(f"📋 Grupos de campos a plotar: {field_groups}")
 
-    # Calcular erros
-    errors = calculate_errors(data_combined, field_groups)
+    # Calcular erros e adicionar ao DataFrame (COMO NO PRIMEIRO SCRIPT)
+    data_combined = calculate_errors(data_combined, field_groups)
 
-    # Salvar erros em arquivo
-    errors_csv_path = os.path.join(plots_dir, "errors_analysis.csv")
-    errors_df = pd.DataFrame(errors).T
-    errors_df.to_csv(errors_csv_path, float_format="%.16e")
-    print(f"💾 Análise de erros salva em: {errors_csv_path}")
+    # Salvar o DataFrame combinado com erros em um arquivo CSV
+    combined_csv_path = os.path.join(case_dir, "combined_data_with_errors.csv")
+    data_combined.to_csv(combined_csv_path, index=False, float_format="%.16e")
+    print(f"💾 DataFrame combinado com erros salvo em: {combined_csv_path}")
+    print(f"📋 Colunas disponíveis: {list(data_combined.columns)}")
+
+    # Mostrar primeiras linhas com alta precisão
+    print("📊 Primeiras 3 linhas dos dados combinados (com erros):")
+    print(data_combined.head(3).to_string(float_format="%.16e"))
+
+    # Criar diretório de plots
+    plots_dir = create_plots_directory(case_dir)
 
     # Plotar cada grupo de campos
     for i, field_group in enumerate(field_groups):
