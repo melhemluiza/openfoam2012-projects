@@ -30,3 +30,10 @@
 *.exe
 *.out
 *.app
+
+# === OPENFOAM SPECIFIC ===
+*/constant/polyMesh/
+*/processor*/
+*/postProcessing/
+*/logs/
+*.foam
