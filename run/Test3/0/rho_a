@@ -23,13 +23,13 @@ boundaryField
     bottom
     {
         type            fixedValue;
-        value           uniform 0.96328;
+        value           uniform 1.1970710875;
     }
 
     top
     {
         type            fixedValue;
-        value           uniform 0.24082;
+        value           uniform 0.299267771875;
     }
 
     sidesX

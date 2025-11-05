@@ -18,6 +18,20 @@ removeLogs
 echo "Cleaning tutorials ..."
 foamCleanTutorials -self
 
+# Remove arquivos do pós-processamento
+echo "Removing post-processing files ..."
+rm -f combined_data_equimolar_with_errors.csv
+rm -f U_analytical_equimolar_debug.csv
+rm -rf plots_equimolar
+rm -f log.equimolarDiffusionFoam
+
+# Remove diretório completo de pós-processamento (opcional)
+if [ -d "postProcessing" ]
+then
+    echo "Removing postProcessing directory ..."
+    rm -rf postProcessing
+fi
+
 echo "--------"
 
-#------------------------------------------------------------------------------
+#------------------------------------------------------------------------------#

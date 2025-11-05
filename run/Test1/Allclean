@@ -20,8 +20,10 @@ foamCleanTutorials -self
 
 # Remove arquivos do pós-processamento
 echo "Removing post-processing files ..."
-rm -rf plots
-rm -f combined_data.csv
+rm -rf plots_stagnantB
+rm -rf plots_equimolar
+rm -f combined_data_stagnantB_with_errors.csv
+rm -f combined_data_equimolar_with_errors.csv
 rm -f log.binaryDiffusionFoam
 
 # Remove diretório completo de pós-processamento (opcional)
@@ -31,6 +33,6 @@ then
     rm -rf postProcessing
 fi
 
-echo "--------"
+echo "Diretório limpo"
 
 #------------------------------------------------------------------------------#

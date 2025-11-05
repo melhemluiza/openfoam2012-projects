@@ -1,5 +1,4 @@
 import os
-import termios
 import pandas as pd
 import matplotlib.pyplot as plt
 import sys
@@ -37,83 +36,196 @@ def run_openfoam_postprocess(case_dir):
         sys.exit(1)
 
 
-def get_user_parameters():
+def get_case_type():
     """
-    Solicita parâmetros do usuário para cálculo analítico do caso equimolar.
+    Solicita o tipo de caso ao usuário.
+    """
+    print("🔍 Selecione o tipo de caso:")
+    print("1 - A escoando em B estagnado (stagnantB)")
+    print("2 - Difusão equimolar (equimolar)")
+
+    while True:
+        choice = input("🎯 Digite 1 ou 2: ").strip()
+        if choice == "1":
+            return "stagnantB"
+        elif choice == "2":
+            return "equimolar"
+        else:
+            print("⚠️  Opção inválida. Digite 1 ou 2.")
+
+
+def get_user_parameters(case_type):
+    """
+    Solicita parâmetros do usuário baseado no tipo de caso.
     """
     try:
-        wa0 = float(input("🎯 Digite o valor de wa0 (em z=0): "))
-        waL = float(input("🎯 Digite o valor de waL (em z=1): "))
-        Dab = float(input("🔬 Digite o valor de Dab (coeficiente de difusão): "))
-        MA = float(input("⚖️ Digite a massa molar MA (kg/kmol): "))
-        MB = float(input("⚖️ Digite a massa molar MB (kg/kmol): "))
-        rho_total = float(input("📊 Digite a densidade mássica total (rho_total): "))
-        return wa0, waL, Dab, MA, MB, rho_total
+        if case_type == "stagnantB":
+            wa0 = float(
+                input("🎯 Digite o valor de wa0 (fração mássica inicial de A): ")
+            )
+            rho_total = float(
+                input("📊 Digite o valor de rho_total (densidade total): ")
+            )
+            Dab = float(input("🔬 Digite o valor de Dab (coeficiente de difusão): "))
+            return {"wa0": wa0, "rho_total": rho_total, "Dab": Dab}
+
+        else:  # equimolar
+            wa0 = float(input("🎯 Digite o valor de wa0 (em z=0): "))
+            waL = float(input("🎯 Digite o valor de waL (em z=1): "))
+            Dab = float(input("🔬 Digite o valor de Dab (coeficiente de difusão): "))
+            MA = float(input("⚖️ Digite a massa molar MA (kg/kmol): "))
+            MB = float(input("⚖️ Digite a massa molar MB (kg/kmol): "))
+            rho_total = float(
+                input("📊 Digite a densidade mássica total (rho_total): ")
+            )
+            return {
+                "wa0": wa0,
+                "waL": waL,
+                "Dab": Dab,
+                "MA": MA,
+                "MB": MB,
+                "rho_total": rho_total,
+            }
+
     except ValueError:
-        print(
-            "⚠️  Erro: Valores inválidos. Usando valores padrão: wa0=0.9, waL=0.1, Dab=0.01, MA=28.96, MB=44.01, rho_total=1.0"
+        print("⚠️  Erro: Valores inválidos. Usando valores padrão.")
+        if case_type == "stagnantB":
+            return {"wa0": 0.9, "rho_total": 1.0, "Dab": 0.1}
+        else:
+            return {
+                "wa0": 0.9,
+                "waL": 0.1,
+                "Dab": 0.01,
+                "MA": 28.96,
+                "MB": 44.01,
+                "rho_total": 1.0,
+            }
+
+
+def calculate_analytical_solution(z_points, case_type, params, L=1.0):
+    """
+    Calcula TODAS as variáveis analíticas baseado no tipo de caso.
+    """
+    if case_type == "stagnantB":
+        # SOLUÇÃO PARA A ESCOANDO EM B ESTAGNADO
+        wa0 = params["wa0"]
+        rho_total = params["rho_total"]
+        Dab = params["Dab"]
+
+        rho_total_float = float(rho_total)
+        wa0_float = float(wa0)
+
+        rho_a0 = wa0_float * rho_total_float
+        rho_b0 = rho_total_float - rho_a0
+        K = rho_total_float / rho_b0  # constante
+
+        # Inicializar todos os arrays
+        wa_analytical = np.zeros_like(z_points)
+        wb_analytical = np.zeros_like(z_points)
+        rho_a_analytical = np.zeros_like(z_points)
+        rho_b_analytical = np.zeros_like(z_points)
+
+        for i, z in enumerate(z_points):
+            if z == 0:
+                wa_analytical[i] = wa0_float
+                rho_a_analytical[i] = rho_a0
+            else:
+                rho_a_analytical[i] = rho_total_float - rho_b0 * (K**z)
+                wa_analytical[i] = rho_a_analytical[i] / rho_total_float
+
+            rho_b_analytical[i] = rho_total_float - rho_a_analytical[i]
+            wb_analytical[i] = rho_b_analytical[i] / rho_total_float
+
+        # Derivadas e fluxos (fora do loop)
+        grad_rho_a_analytical = -rho_b0 * (K**z_points) * np.log(K)
+        grad_rho_b_analytical = -grad_rho_a_analytical
+
+        ja_analytical = -Dab * grad_rho_a_analytical
+        jb_analytical = -Dab * grad_rho_b_analytical
+
+        U_analytical = (1 / (1 - wa_analytical)) * (ja_analytical / rho_total_float)
+        Na_analytical = ja_analytical + rho_a_analytical * U_analytical
+        Nb_analytical = jb_analytical + rho_b_analytical * U_analytical
+        U_ver_analytical = (Na_analytical + Nb_analytical) / rho_total_float
+
+        print(f"wa0_float = {wa0_float}, type = {type(wa0_float)}")
+        print(f"wa_analytical[0] = {wa_analytical[0]}, type = {type(wa_analytical[0])}")
+        print(f"São iguais? {wa_analytical[0] == wa0_float}")
+        print(f"Diferença: {wa_analytical[0] - wa0_float}")
+
+        return {
+            "rho_a": rho_a_analytical,
+            "rho_b": rho_b_analytical,
+            "wa": wa_analytical,
+            "wb": wb_analytical,
+            "ja": ja_analytical,
+            "jb": jb_analytical,
+            "U": U_analytical,
+            "Na": Na_analytical,
+            "Nb": Nb_analytical,
+            "U_ver": U_ver_analytical,
+        }
+
+    else:
+        # SOLUÇÃO PARA DIFUSÃO EQUIMOLAR CORRETA
+        wa0 = params["wa0"]
+        waL = params["waL"]
+        Dab = params["Dab"]
+        MA = params["MA"]
+        MB = params["MB"]
+        rho_total = params["rho_total"]
+
+        rho_a0 = float(wa0) * float(rho_total)
+        rho_aL = float(waL) * float(rho_total)
+        r = float(MB) / float(MA)
+
+        # Perfil geral (linear)
+        rho_a_analytical = rho_a0 + (rho_aL - rho_a0) * (z_points / L)
+        rho_b_analytical = rho_total - rho_a_analytical
+
+        # Frações mássicas
+        wa_analytical = rho_a_analytical / rho_total
+        wb_analytical = rho_b_analytical / rho_total
+
+        # Gradientes (CONSTANTES)
+        grad_rho_a = (rho_aL - rho_a0) / L
+
+        # Fluxos difusivos (CONSTANTES no caso equimolar)
+        ja_analytical = -Dab * grad_rho_a
+        jb_analytical = -ja_analytical  # jb = -ja
+
+        # A velocidade U
+        U_analytical = ((1.0 - r) / (1.0 + wa_analytical * (r - 1.0))) * (
+            ja_analytical / rho_total
         )
-        return 0.9, 0.1, 0.01, 28.96, 44.01, 1.0
 
+        # Fluxos totais (CONSTANTES no caso equimolar)
+        Na_analytical = ja_analytical + rho_a_analytical * U_analytical
+        Nb_analytical = jb_analytical + rho_b_analytical * U_analytical
 
-def calculate_analytical_solution(z_points, wa0, waL, Dab, MA, MB, rho_total, L=1.0):
-    """
-    Calcula TODAS as variáveis analíticas para o caso equimolar CORRETO.
-    """
-    # =========================================================================
-    # SOLUÇÃO CORRETA PARA DIFUSÃO EQUIMOLAR EM BASE MÁSSICA
-    # =========================================================================
-    rho_a0 = float(wa0) * float(rho_total)
-    rho_aL = float(waL) * float(rho_total)
-    r = MB / MA
+        # Velocidade verificada (deve ser igual a U)
+        U_ver_analytical = (Na_analytical + Nb_analytical) / rho_total
 
-    # Perfil geral (linear)
-    rho_a_analytical = rho_a0 + (rho_aL - rho_a0) * (z_points / L)
-    rho_b_analytical = rho_total - rho_a_analytical
+        print(f"🔍 DEBUG ANALÍTICO (Equimolar):")
+        print(f"   grad_rho_a = {grad_rho_a:.6e}")
+        print(f"   ja_analytical = {ja_analytical:.6e} (constante)")
+        print(f"   U_analytical médio = {np.mean(U_analytical):.6e} (constante)")
+        print(f"   Na_analytical médio = {np.mean(Na_analytical):.6e}")
+        print(f"   Nb_analytical médio = {np.mean(Nb_analytical):.6e}")
+        print(f"   U_ver_analytical médio = {np.mean(U_ver_analytical):.6e}")
 
-    # 2. Frações mássicas
-    wa_analytical = rho_a_analytical / rho_total
-    wb_analytical = rho_b_analytical / rho_total
-
-    # 3. Gradientes (CONSTANTES)
-    grad_rho_a = (rho_aL - rho_a0) / L
-
-    # 4. Fluxos difusivos (CONSTANTES no caso equimolar)
-    ja_analytical = -Dab * grad_rho_a
-    jb_analytical = -ja_analytical  # jb = -ja
-
-    # A velocidade U é constante no caso equimolar:
-    U_analytical = ((1.0 - r) / (1.0 + wa_analytical * (r - 1.0))) * (
-        ja_analytical / rho_total
-    )
-
-    # 6. Fluxos totais (CONSTANTES no caso equimolar)
-    Na_analytical = ja_analytical + rho_a_analytical * U_analytical
-    Nb_analytical = jb_analytical + rho_b_analytical * U_analytical
-
-    # 7. Velocidade verificada (deve ser igual a U)
-    U_ver_analytical = (Na_analytical + Nb_analytical) / rho_total
-
-    print(f"🔍 DEBUG ANALÍTICO:")
-    print(f"   grad_rho_a = {grad_rho_a:.6e}")
-    print(f"   ja_analytical = {ja_analytical:.6e} (constante)")
-    print(f"   U_analytical médio = {np.mean(U_analytical):.6e} (constante)")
-    print(f"   Na_analytical médio = {np.mean(Na_analytical):.6e}")
-    print(f"   Nb_analytical médio = {np.mean(Nb_analytical):.6e}")
-    print(f"   U_ver_analytical médio = {np.mean(U_ver_analytical):.6e}")
-
-    return {
-        "rho_a": rho_a_analytical,
-        "rho_b": rho_b_analytical,
-        "wa": wa_analytical,
-        "wb": wb_analytical,
-        "ja": np.full_like(z_points, ja_analytical),  # Constante
-        "jb": np.full_like(z_points, jb_analytical),  # Constante
-        "U": np.full_like(z_points, np.mean(U_analytical)),  # Constante
-        "Na": np.full_like(z_points, np.mean(Na_analytical)),  # Constante
-        "Nb": np.full_like(z_points, np.mean(Nb_analytical)),  # Constante
-        "U_ver": np.full_like(z_points, np.mean(U_ver_analytical)),  # Constante
-    }
+        return {
+            "rho_a": rho_a_analytical,
+            "rho_b": rho_b_analytical,
+            "wa": wa_analytical,
+            "wb": wb_analytical,
+            "ja": ja_analytical,
+            "jb": jb_analytical,
+            "U": U_analytical,
+            "Na": Na_analytical,
+            "Nb": Nb_analytical,
+            "U_ver": U_ver_analytical,
+        }
 
 
 def read_openfoam_data(file_path):
@@ -132,11 +244,11 @@ def read_openfoam_data(file_path):
         return None
 
 
-def create_plots_directory(case_dir):
+def create_plots_directory(case_dir, case_type):
     """
     Cria diretório para os plots se não existir.
     """
-    plots_dir = os.path.join(case_dir, "plots_equimolar")
+    plots_dir = os.path.join(case_dir, f"plots_{case_type}")
     if not os.path.exists(plots_dir):
         os.makedirs(plots_dir)
         print(f"📁 Diretório de plots criado: {plots_dir}")
@@ -147,19 +259,6 @@ def parse_field_groups(field_args):
     """
     Converte argumentos como 'wawb' em grupos de campos ['wa', 'wb']
     """
-    field_mapping = {
-        "wa": "wa",
-        "wb": "wb",
-        "rho_a": "rho_a",
-        "rho_b": "rho_b",
-        "ja": "ja",
-        "jb": "jb",
-        "U": "U",
-        "Na": "Na",
-        "Nb": "Nb",
-        "U_ver": "U_ver",
-    }
-
     field_groups = []
 
     for arg in field_args:
@@ -194,9 +293,7 @@ def parse_field_groups(field_args):
     return field_groups
 
 
-def plot_field_group(
-    data, field_group, plots_dir, wa0, waL, Dab, MA, MB, rho_total, group_name
-):
+def plot_field_group(data, field_group, plots_dir, case_type, params, group_name):
     """
     Plota um grupo de campos na mesma imagem.
     """
@@ -244,8 +341,11 @@ def plot_field_group(
                 data[analytical_field].isna() | np.isinf(data[analytical_field])
             )
             if valid_mask.any():
-                # Para campos constantes, plotar como linha reta
-                if len(np.unique(data[analytical_field][valid_mask])) == 1:
+                # Para campos constantes (caso equimolar), plotar como linha reta
+                if (
+                    case_type == "equimolar"
+                    and len(np.unique(data[analytical_field][valid_mask])) == 1
+                ):
                     ax.axhline(
                         y=data[analytical_field].iloc[0],
                         color=color_ana,
@@ -278,11 +378,19 @@ def plot_field_group(
     ax.legend(loc="best")
     ax.grid(True, alpha=0.3)
     ax.set_xlim(0, 1)
-    ax.set_title(
-        f"Comparação - {group_name} (Caso Equimolar)\n"
-        f"wa0={wa0}, waL={waL}, Dab={Dab}\n"
-        f"MA={MA}, MB={MB}, ρ_total={rho_total}"
-    )
+
+    # Título baseado no tipo de caso
+    if case_type == "stagnantB":
+        ax.set_title(
+            f"Comparação - {group_name} (A escoando em B estagnado)\n"
+            f"wa0={params['wa0']}, ρ_total={params['rho_total']}, Dab={params['Dab']}"
+        )
+    else:
+        ax.set_title(
+            f"Comparação - {group_name} (Caso Equimolar)\n"
+            f"wa0={params['wa0']}, waL={params['waL']}, Dab={params['Dab']}\n"
+            f"MA={params['MA']}, MB={params['MB']}, ρ_total={params['rho_total']}"
+        )
 
     plot_filename = f"{group_name}_comparison.png"
     plot_path = os.path.join(plots_dir, plot_filename)
@@ -348,8 +456,12 @@ def main():
     # Executar postProcess
     run_openfoam_postprocess(case_dir)
 
-    # Obter parâmetros do usuário
-    wa0, waL, Dab, MA, MB, rho_total = get_user_parameters()
+    # Obter tipo de caso e parâmetros
+    case_type = get_case_type()
+    params = get_user_parameters(case_type)
+
+    print(f"📋 Tipo de caso selecionado: {case_type}")
+    print(f"📋 Parâmetros: {params}")
 
     # Encontrar os arquivos de dados mais recentes
     postprocessing_dir = os.path.join(case_dir, "postProcessing", "sampleDict")
@@ -382,14 +494,13 @@ def main():
     if df_cloud1 is None:
         sys.exit(1)
 
-    # Atribuir nomes corretos às colunas - 6 colunas: z, rho, rho_a, rho_b, wa, wb
+    # Atribuir nomes corretos às colunas
     if df_cloud1.shape[1] == 6:
         df_cloud1.columns = ["z", "rho", "rho_a", "rho_b", "wa", "wb"]
         print("✅ Colunas do arquivo 1 identificadas: z, rho, rho_a, rho_b, wa, wb")
     else:
         print(f"⚠️  Arquivo 1 tem {df_cloud1.shape[1]} colunas, usando nomes genéricos")
         df_cloud1.columns = [f"col_{i}" for i in range(df_cloud1.shape[1])]
-        # Assumindo que a primeira coluna é sempre z
         if df_cloud1.shape[1] >= 1:
             df_cloud1 = df_cloud1.rename(columns={"col_0": "z"})
 
@@ -404,21 +515,21 @@ def main():
             "z",
             "x",
             "y",
+            "Na_z",
             "Na_x",
             "Na_y",
-            "Na_z",
+            "Nb_z",
             "Nb_x",
             "Nb_y",
-            "Nb_z",
+            "U_z",
             "U_x",
             "U_y",
-            "U_z",
+            "U_ver_z",
             "U_ver_x",
             "U_ver_y",
-            "U_ver_z",
+            "ja_z",
             "ja_x",
             "ja_y",
-            "ja_z",
             "jb_z",
         ]
         print("✅ Colunas do arquivo 2 identificadas (19 colunas)")
@@ -478,11 +589,9 @@ def main():
             data_combined["Nb"] - data_combined["rho_b"] * data_combined["U"]
         )
 
-    # Calcular a solução analítica CORRETA
+    # Calcular a solução analítica baseada no tipo de caso
     z_points = data_combined["z"]
-    analytical_solutions = calculate_analytical_solution(
-        z_points, wa0, waL, Dab, MA, MB, rho_total
-    )
+    analytical_solutions = calculate_analytical_solution(z_points, case_type, params)
 
     # Adicionar soluções analíticas ao DataFrame
     for col, values in analytical_solutions.items():
@@ -494,8 +603,8 @@ def main():
 
     # Obter grupos de campos dos argumentos da linha de comando
     if len(sys.argv) < 2:
-        print("Uso: python3 postproc_equimolar.py <grupo1> <grupo2> ...")
-        print("Exemplo: python3 postproc_equimolar.py wawb NaNb jajb UU_ver")
+        print("Uso: python3 postproc.py <grupo1> <grupo2> ...")
+        print("Exemplo: python3 postproc.py wawb NaNb jajb UU_ver")
         print("Campos disponíveis: rho_a, rho_b, wa, wb, U, ja, jb, Na, Nb, U_ver")
         sys.exit(1)
 
@@ -509,7 +618,7 @@ def main():
 
     # Salvar o DataFrame combinado com erros em um arquivo CSV
     combined_csv_path = os.path.join(
-        case_dir, "combined_data_equimolar_with_errors.csv"
+        case_dir, f"combined_data_{case_type}_with_errors.csv"
     )
     data_combined.to_csv(combined_csv_path, index=False, float_format="%.16e")
     print(f"💾 DataFrame combinado com erros salvo em: {combined_csv_path}")
@@ -520,7 +629,7 @@ def main():
     print(data_combined.head(3).to_string(float_format="%.16e"))
 
     # Criar diretório de plots
-    plots_dir = create_plots_directory(case_dir)
+    plots_dir = create_plots_directory(case_dir, case_type)
 
     # Plotar cada grupo de campos
     for i, field_group in enumerate(field_groups):
@@ -529,16 +638,12 @@ def main():
             data_combined,
             field_group,
             plots_dir,
-            wa0,
-            waL,
-            Dab,
-            MA,
-            MB,
-            rho_total,
+            case_type,
+            params,
             group_name,
         )
 
-    print("🎉 Processo concluído para caso equimolar!")
+    print(f"🎉 Processo concluído para caso {case_type}!")
 
 
 if __name__ == "__main__":

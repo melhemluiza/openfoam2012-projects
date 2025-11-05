@@ -22,7 +22,9 @@ gradSchemes
 
 divSchemes
 {
-    default                                 Gauss linear;
+    default                                 none;
+    div(phi,rho_a)                          Gauss limitedLinear 1.0;
+    div(U)                                  Gauss linear;
 }
 
 laplacianSchemes
