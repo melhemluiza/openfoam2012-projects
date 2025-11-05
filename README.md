@@ -10,13 +10,13 @@
 ## 🎯 Tarefas Atuais
 - [ ] Gŕafico 3 condições de contoro (0.5, 0.75, 0.95)
 - [ ] Gráficos de erros absolutos STF x solvers
-    - [ ] script para retirar U de equimolarDiffusionFoam -> 0/U pra RSTF
-    - [ ] rodar os casos no RSTF
+    - [x] script para retirar U de equimolarDiffusionFoam -> 0/U pra RSTF
+    - [x] rodar os casos no RSTF
 - [ ] Estudo de malha
 - [x] Criar variável U_ver
     - [x] U pelo somatório dos fluxos
     - [x] Separar de U calculada pela reorganização da eq (U em função de ja)
-- [ ] Atualizar scripts de pós processamento
+- [x] Atualizar scripts de pós processamento
 - [x] Criação do git
 
 
