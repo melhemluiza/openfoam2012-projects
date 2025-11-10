@@ -8,8 +8,8 @@
 - **Branch Ativa**: `feature/correcoes-out-16`
 
 ## 🎯 Tarefas Atuais
-- [ ] Gŕafico 3 condições de contoro (0.5, 0.75, 0.95)
-- [ ] Gráficos de erros absolutos STF x solvers
+- [x] Gŕafico 3 condições de contoro (0.5, 0.75, 0.95)
+- [x] Gráficos de erros absolutos STF x solvers
     - [x] script para retirar U de equimolarDiffusionFoam -> 0/U pra RSTF
     - [x] rodar os casos no RSTF
 - [ ] Estudo de malha
