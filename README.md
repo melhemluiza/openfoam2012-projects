@@ -3,21 +3,20 @@
 # OpenFOAM 2012 - Desenvolvimento
 
 ## 📋 Status do Projeto
-- **Última Reunião**: 16/out/2025
-- **Próxima Reunião**: 23/out/2025 
-- **Branch Ativa**: `feature/correcoes-out-16`
+- **Última Reunião**: 06/nov/2025
+- **Próxima Reunião**: 13/nov/2025 
+- **Branch Ativa**: `feature/nov-06`
 
 ## 🎯 Tarefas Atuais
-- [ ] Gŕafico 3 condições de contoro (0.5, 0.75, 0.95)
-- [ ] Gráficos de erros absolutos STF x solvers
-    - [ ] script para retirar U de equimolarDiffusionFoam -> 0/U pra RSTF
-    - [ ] rodar os casos no RSTF
+- [ ] Mudar equimolarDiffusionFoam pra equação correta
+- [ ] Atualizar postproc.py
+- [ ] Atualizar setup_U.py
+- [ ] Slides
+    - [ ] Adicionar resultado do caso 1 - B estagnado
+    - [ ] Adicionar resultado do caso 2 - equimolar
+    - [ ] Atualizar cronograma (pedir prorrogação)
 - [ ] Estudo de malha
-- [x] Criar variável U_ver
-    - [x] U pelo somatório dos fluxos
-    - [x] Separar de U calculada pela reorganização da eq (U em função de ja)
-- [ ] Atualizar scripts de pós processamento
-- [x] Criação do git
+
 
 
 ## 📁 Estrutura
