@@ -8,9 +8,9 @@
 - **Branch Ativa**: `feature/nov-06`
 
 ## 🎯 Tarefas Atuais
-- [ ] Mudar equimolarDiffusionFoam pra equação correta
-- [ ] Atualizar postproc.py
-- [ ] Atualizar setup_U.py
+- [x] Mudar equimolarDiffusionFoam pra equação correta
+- [x] Atualizar postproc.py
+- [x] Atualizar setup_U.py
 - [ ] Slides
     - [ ] Adicionar resultado do caso 1 - B estagnado
     - [ ] Adicionar resultado do caso 2 - equimolar
