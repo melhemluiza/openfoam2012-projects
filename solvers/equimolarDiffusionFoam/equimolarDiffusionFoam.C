@@ -82,26 +82,27 @@ int main(int argc, char *argv[])
     {
         Info<< "Instante atual = " << runTime.timeName() << nl << endl;
 
+        coeff2 = -Dab*rho/(rho - rho_a*(1 - ratio));
+
         while (simple.correctNonOrthogonal())
         {
             fvScalarMatrix rhoiEqn
             (
-                fvm::laplacian(-Dab, rho_a)
+                fvm::laplacian(coeff2, rho_a)
 
             );
 
             rhoiEqn.solve();
 
         }
+
         rho_b == rho - rho_a;
         wa == rho_a/rho;
         wb == rho_b/rho;
         ja == -Dab*fvc::grad(rho_a);
         jb == -Dab*fvc::grad(rho_b);
 
-        dimensionedScalar ratio("ratio", dimless, MB.value()/MA.value());
-
-        U ==  ((-ratio + 1.0) / (1.0 + wa*(ratio - 1.0))) * (ja/rho);
+        U ==  ((1 - ratio) / (1.0 + wa*(ratio - 1.0))) * (ja/rho);
 
         Na == ja + rho_a*U;
         Nb == jb + rho_b*U;

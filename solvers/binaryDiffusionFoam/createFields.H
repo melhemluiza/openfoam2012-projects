@@ -43,7 +43,7 @@ volScalarField rho_b
     rho - rho_a
 );
 
-Info<< "Reading field wa\n" << endl;
+Info<< "Creating field wa\n" << endl;
 
 volScalarField wa
 (
@@ -58,7 +58,7 @@ volScalarField wa
     rho_a/rho
 );
 
-Info<< "Reading field wb\n" << endl;
+Info<< "Creating field wb\n" << endl;
 
 volScalarField wb
 (
@@ -91,7 +91,7 @@ Info<< "Reading diffusion coefficient Dab\n" << endl;
 
 dimensionedScalar Dab("Dab", dimViscosity, transportProperties);
 
-Info<< "Creating field diffusive flux of species A\n" << endl;
+Info<< "Creating field ja (mass diffusive flux for A) \n" << endl;
 
 volVectorField ja
 (
@@ -107,7 +107,7 @@ volVectorField ja
     dimensionedVector("zero", dimMass/(dimArea*dimTime), vector::zero)
 );
 
-Info<< "Creating field diffusive flux of species B\n" << endl;
+Info<< "Creating field jb (mass diffusive flux for B) \n" << endl;
 
 volVectorField jb
 (
@@ -123,7 +123,7 @@ volVectorField jb
     dimensionedVector("zero", dimMass/(dimArea*dimTime), vector::zero)
 );
 
-Info<< "Creating field total flux of species A\n" << endl;
+Info<< "Creating field Na (total mass flux for A) \n" << endl;
 
 volVectorField Na
 (
@@ -139,7 +139,7 @@ volVectorField Na
     dimensionedVector("zero", dimMass/(dimArea*dimTime), vector::zero)
 );
 
-Info<< "Creating field total flux of species B\n" << endl;
+Info<< "Creating field Nb (total mass flux for B) \n" << endl;
 
 volVectorField Nb
 (
@@ -154,7 +154,8 @@ volVectorField Nb
     mesh,
     dimensionedVector("zero", dimMass/(dimArea*dimTime), vector::zero)
 );
-Info<< "Creating velocities fields \n" << endl;
+
+Info<< "Creating field mass average velocity \n" << endl;
 
 volVectorField U
 (
@@ -170,6 +171,8 @@ volVectorField U
     dimensionedVector("zero", dimVelocity, vector::zero)
 );
 
+Info<< "Creating field mass average velocity \n" << endl;
+
 volVectorField U_ver
 (
     IOobject
@@ -180,11 +183,10 @@ volVectorField U_ver
         IOobject::NO_READ,
         IOobject::AUTO_WRITE
     ),
-    mesh,
-    dimensionedVector("zero", dimVelocity, vector::zero)
+    (Na+Nb)/rho
 );
 
-Info<< "Creating field coeff1\n" << endl;
+Info<< "Creating field coeff1 \n" << endl;
 
 volScalarField coeff1
 (

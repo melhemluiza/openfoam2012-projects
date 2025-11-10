@@ -82,7 +82,7 @@ int main(int argc, char *argv[])
     {
         Info<< "Instante atual = " << runTime.timeName() << nl << endl;
 
-        volScalarField coeff1 = -Dab*rho/(rho - rho_a);
+        coeff1 = -Dab*rho/(rho - rho_a);
 
         while (simple.correctNonOrthogonal())
         {

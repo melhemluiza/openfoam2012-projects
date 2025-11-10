@@ -43,7 +43,7 @@ volScalarField rho_b
     rho - rho_a
 );
 
-Info<< "Reading field wa\n" << endl;
+Info<< "Creating field wa\n" << endl;
 
 volScalarField wa
 (
@@ -52,13 +52,13 @@ volScalarField wa
         "wa",
         runTime.timeName(),
         mesh,
-        IOobject::MUST_READ,
+        IOobject::NO_READ,
         IOobject::AUTO_WRITE
     ),
     rho_a/rho
 );
 
-Info<< "Reading field wb\n" << endl;
+Info<< "Creating field wb\n" << endl;
 
 volScalarField wb
 (
@@ -67,7 +67,7 @@ volScalarField wb
         "wb",
         runTime.timeName(),
         mesh,
-        IOobject::MUST_READ,
+        IOobject::NO_READ,
         IOobject::AUTO_WRITE
     ),
     rho_b/rho
@@ -95,6 +95,10 @@ Info<< "Reading molecular weights (MA and MB)\n" << endl;
 
 dimensionedScalar MA("MA", dimMass/dimMoles, transportProperties);
 dimensionedScalar MB("MB", dimMass/dimMoles, transportProperties);
+
+Info<< "Creating field ratio (r)\n" << endl;
+
+dimensionedScalar ratio("ratio", dimless, MB.value()/MA.value());
 
 Info<< "Creating field ja (mass diffusive flux for A) \n" << endl;
 
@@ -188,6 +192,18 @@ volVectorField U_ver
         IOobject::NO_READ,
         IOobject::AUTO_WRITE
     ),
-    mesh,
-    dimensionedVector("zero", dimVelocity, vector::zero)
+    (Na+Nb)/rho
+);
+
+volScalarField coeff2
+(
+    IOobject
+    (
+        "coeff2",
+        runTime.timeName(),
+        mesh,
+        IOobject::NO_READ,
+        IOobject::AUTO_WRITE
+    ),
+    -Dab*rho/(rho - rho_a*(1 - ratio))
 );
