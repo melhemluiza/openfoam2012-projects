@@ -50,8 +50,8 @@ fi
 # 3. Executar a aplicação (solver) definida no controlDict
 # ATENÇÃO: Substitua 'seuSolver' pelo nome do solver que você está usando (ex: simpleFoam, pimpleFoam, interFoam, etc.)
 # O nome do solver é definido no arquivo controlDict, na entrada 'application'.
-echo "Executando o solver (substitua 'seuSolver' pelo nome correto)..."
-equimolarDiffusionFoam
+echo "Executando o equimolarDiffusionFoam"
+equimolarDiffusionFoam > log.equimolarDiffusionFoam
 
 # Verificar se o solver foi executado com sucesso
 if [ $? -ne 0 ]; then
@@ -59,7 +59,6 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-echo "Simulação concluída com sucesso!"
+echo "Simulação concluída com sucesso!🎉"
 
 #------------------------------------------------------------------------------
-

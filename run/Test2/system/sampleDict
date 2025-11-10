@@ -63,10 +63,15 @@ fields
 (
     Na
     Nb
+    ja
+    jb
     rho_a
     rho_b
     rho
+    wa
+    wb
     U
+    U_ver
 );
 
 

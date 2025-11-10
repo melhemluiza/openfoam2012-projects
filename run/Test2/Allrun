@@ -50,8 +50,8 @@ fi
 # 3. Executar a aplicação (solver) definida no controlDict
 # ATENÇÃO: Substitua 'seuSolver' pelo nome do solver que você está usando (ex: simpleFoam, pimpleFoam, interFoam, etc.)
 # O nome do solver é definido no arquivo controlDict, na entrada 'application'.
-echo "Executando o solver (substitua 'seuSolver' pelo nome correto)..."
-rhoscalarTransportFoam
+echo "Executando o rhoscalarTransportFoam"
+rhoscalarTransportFoam > log.rhoscalarTransportFoam
 
 # Verificar se o solver foi executado com sucesso
 if [ $? -ne 0 ]; then
