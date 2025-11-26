@@ -1,0 +1,364 @@
+/*---------------------------------------------------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2012                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+Build  : _7bdb509494-20201222 OPENFOAM=2012
+Arch   : "LSB;label=32;scalar=64"
+Exec   : equimolarDiffusionFoam
+Date   : Nov 10 2025
+Time   : 08:00:52
+Host   : luiza
+PID    : 14390
+I/O    : uncollated
+Case   : /home/luiza/OpenFOAM/luiza-v2012/run/Tese/Test3
+nProcs : 1
+trapFpe: Floating point exception trapping enabled (FOAM_SIGFPE).
+fileModificationChecking : Monitoring run-time modified files using timeStampMaster (fileModificationSkew 5, maxFileModificationPolls 20)
+allowSystemOperations : Allowing user-supplied system call operations
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+Create time
+
+Create mesh for time = 0
+
+
+SIMPLE: no convergence criteria found. Calculations will run for 50 steps.
+
+Reading field total concentration
+
+Reading field rho_a
+
+Creating field rho_b
+
+Creating field wa
+
+Creating field wb
+
+Reading transportProperties
+
+Reading diffusion coefficient Dab
+
+Reading molecular weights (MA and MB)
+
+Creating field ratio (r)
+
+Creating field ja (mass diffusive flux for A) 
+
+Creating field jb (mass diffusive flux for B) 
+
+Creating field mass average velocity 
+
+Creating field Na (total mass flux for A) 
+
+Creating field Nb (total mass flux for B) 
+
+Creating field mass average velocity (verification step) 
+
+
+Calculating equimolar diffusion
+
+Instante atual = 0.5
+
+DICPBiCGStab:  Solving for rho_a, Initial residual = 1, Final residual = 6.62129e-29, No Iterations 1
+Instante atual = 1
+
+DICPBiCGStab:  Solving for rho_a, Initial residual = 0.00190348, Final residual = 1.02558e-16, No Iterations 1
+Instante atual = 1.5
+
+DICPBiCGStab:  Solving for rho_a, Initial residual = 8.49816e-05, Final residual = 2.88741e-18, No Iterations 1
+Instante atual = 2
+
+DICPBiCGStab:  Solving for rho_a, Initial residual = 4.18102e-06, Final residual = 2.71006e-19, No Iterations 1
+Instante atual = 2.5
+
+DICPBiCGStab:  Solving for rho_a, Initial residual = 2.52797e-07, Final residual = 8.50164e-21, No Iterations 1
+Instante atual = 3
+
+DICPBiCGStab:  Solving for rho_a, Initial residual = 1.48965e-08, Final residual = 7.89962e-22, No Iterations 1
+Instante atual = 3.5
+
+DICPBiCGStab:  Solving for rho_a, Initial residual = 8.90124e-10, Final residual = 3.38962e-23, No Iterations 1
+Instante atual = 4
+
+DICPBiCGStab:  Solving for rho_a, Initial residual = 5.30601e-11, Final residual = 2.73613e-24, No Iterations 1
+Instante atual = 4.5
+
+DICPBiCGStab:  Solving for rho_a, Initial residual = 3.16629e-12, Final residual = 1.45013e-25, No Iterations 1
+Instante atual = 5
+
+DICPBiCGStab:  Solving for rho_a, Initial residual = 1.89152e-13, Final residual = 9.12967e-27, No Iterations 1
+Instante atual = 5.5
+
+DICPBiCGStab:  Solving for rho_a, Initial residual = 1.17004e-14, Final residual = 4.90402e-28, No Iterations 1
+Instante atual = 6
+
+DICPBiCGStab:  Solving for rho_a, Initial residual = 3.08943e-15, Final residual = 1.03556e-29, No Iterations 1
+Instante atual = 6.5
+
+DICPBiCGStab:  Solving for rho_a, Initial residual = 3.28458e-15, Final residual = 3.65172e-29, No Iterations 1
+Instante atual = 7
+
+DICPBiCGStab:  Solving for rho_a, Initial residual = 2.74844e-15, Final residual = 1.74271e-29, No Iterations 1
+Instante atual = 7.5
+
+DICPBiCGStab:  Solving for rho_a, Initial residual = 3.16954e-15, Final residual = 1.89521e-29, No Iterations 1
+Instante atual = 8
+
+DICPBiCGStab:  Solving for rho_a, Initial residual = 3.0463e-15, Final residual = 5.19123e-29, No Iterations 1
+Instante atual = 8.5
+
+DICPBiCGStab:  Solving for rho_a, Initial residual = 3.4448e-15, Final residual = 2.37994e-29, No Iterations 1
+Instante atual = 9
+
+DICPBiCGStab:  Solving for rho_a, Initial residual = 3.76319e-15, Final residual = 4.91542e-29, No Iterations 1
+Instante atual = 9.5
+
+DICPBiCGStab:  Solving for rho_a, Initial residual = 3.05246e-15, Final residual = 3.41737e-29, No Iterations 1
+Instante atual = 10
+
+DICPBiCGStab:  Solving for rho_a, Initial residual = 3.06273e-15, Final residual = 5.42248e-29, No Iterations 1
+Instante atual = 10.5
+
+DICPBiCGStab:  Solving for rho_a, Initial residual = 3.29279e-15, Final residual = 2.96673e-29, No Iterations 1
+Instante atual = 11
+
+DICPBiCGStab:  Solving for rho_a, Initial residual = 3.0463e-15, Final residual = 4.89335e-29, No Iterations 1
+Instante atual = 11.5
+
+DICPBiCGStab:  Solving for rho_a, Initial residual = 2.87169e-15, Final residual = 5.36533e-29, No Iterations 1
+Instante atual = 12
+
+DICPBiCGStab:  Solving for rho_a, Initial residual = 3.24555e-15, Final residual = 6.99785e-29, No Iterations 1
+Instante atual = 12.5
+
+DICPBiCGStab:  Solving for rho_a, Initial residual = 3.64611e-15, Final residual = 1.18262e-29, No Iterations 1
+Instante atual = 13
+
+DICPBiCGStab:  Solving for rho_a, Initial residual = 2.93332e-15, Final residual = 2.44927e-29, No Iterations 1
+Instante atual = 13.5
+
+DICPBiCGStab:  Solving for rho_a, Initial residual = 3.56394e-15, Final residual = 1.30815e-29, No Iterations 1
+Instante atual = 14
+
+DICPBiCGStab:  Solving for rho_a, Initial residual = 3.01343e-15, Final residual = 1.13978e-29, No Iterations 1
+Instante atual = 14.5
+
+DICPBiCGStab:  Solving for rho_a, Initial residual = 3.25376e-15, Final residual = 6.43209e-29, No Iterations 1
+Instante atual = 15
+
+DICPBiCGStab:  Solving for rho_a, Initial residual = 3.2476e-15, Final residual = 1.11886e-28, No Iterations 1
+Instante atual = 15.5
+
+DICPBiCGStab:  Solving for rho_a, Initial residual = 3.56189e-15, Final residual = 5.12042e-29, No Iterations 1
+Instante atual = 16
+
+DICPBiCGStab:  Solving for rho_a, Initial residual = 3.57626e-15, Final residual = 3.07556e-29, No Iterations 1
+Instante atual = 16.5
+
+DICPBiCGStab:  Solving for rho_a, Initial residual = 3.76114e-15, Final residual = 6.93709e-29, No Iterations 1
+Instante atual = 17
+
+DICPBiCGStab:  Solving for rho_a, Initial residual = 2.78336e-15, Final residual = 5.70482e-30, No Iterations 1
+Instante atual = 17.5
+
+DICPBiCGStab:  Solving for rho_a, Initial residual = 2.79364e-15, Final residual = 7.85169e-29, No Iterations 1
+Instante atual = 18
+
+DICPBiCGStab:  Solving for rho_a, Initial residual = 3.35853e-15, Final residual = 9.1179e-29, No Iterations 1
+Instante atual = 18.5
+
+DICPBiCGStab:  Solving for rho_a, Initial residual = 2.7998e-15, Final residual = 4.21399e-29, No Iterations 1
+Instante atual = 19
+
+DICPBiCGStab:  Solving for rho_a, Initial residual = 3.16749e-15, Final residual = 9.49966e-30, No Iterations 1
+Instante atual = 19.5
+
+DICPBiCGStab:  Solving for rho_a, Initial residual = 3.27636e-15, Final residual = 1.65062e-29, No Iterations 1
+Instante atual = 20
+
+DICPBiCGStab:  Solving for rho_a, Initial residual = 3.13462e-15, Final residual = 3.49464e-29, No Iterations 1
+Instante atual = 20.5
+
+DICPBiCGStab:  Solving for rho_a, Initial residual = 2.97029e-15, Final residual = 7.65218e-30, No Iterations 1
+Instante atual = 21
+
+DICPBiCGStab:  Solving for rho_a, Initial residual = 3.01548e-15, Final residual = 3.13613e-29, No Iterations 1
+Instante atual = 21.5
+
+DICPBiCGStab:  Solving for rho_a, Initial residual = 3.43042e-15, Final residual = 6.8559e-29, No Iterations 1
+Instante atual = 22
+
+DICPBiCGStab:  Solving for rho_a, Initial residual = 3.13668e-15, Final residual = 1.2178e-28, No Iterations 1
+Instante atual = 22.5
+
+DICPBiCGStab:  Solving for rho_a, Initial residual = 3.28868e-15, Final residual = 4.74155e-29, No Iterations 1
+Instante atual = 23
+
+DICPBiCGStab:  Solving for rho_a, Initial residual = 2.83472e-15, Final residual = 5.95873e-29, No Iterations 1
+Instante atual = 23.5
+
+DICPBiCGStab:  Solving for rho_a, Initial residual = 3.04424e-15, Final residual = 1.14258e-28, No Iterations 1
+Instante atual = 24
+
+DICPBiCGStab:  Solving for rho_a, Initial residual = 2.88607e-15, Final residual = 3.46873e-29, No Iterations 1
+Instante atual = 24.5
+
+DICPBiCGStab:  Solving for rho_a, Initial residual = 2.47935e-15, Final residual = 3.22122e-29, No Iterations 1
+Instante atual = 25
+
+DICPBiCGStab:  Solving for rho_a, Initial residual = 2.85937e-15, Final residual = 6.24476e-29, No Iterations 1
+Instante atual = 25.5
+
+DICPBiCGStab:  Solving for rho_a, Initial residual = 2.90456e-15, Final residual = 1.34863e-29, No Iterations 1
+Instante atual = 26
+
+DICPBiCGStab:  Solving for rho_a, Initial residual = 3.17981e-15, Final residual = 1.42056e-29, No Iterations 1
+Instante atual = 26.5
+
+DICPBiCGStab:  Solving for rho_a, Initial residual = 2.81007e-15, Final residual = 3.89483e-29, No Iterations 1
+Instante atual = 27
+
+DICPBiCGStab:  Solving for rho_a, Initial residual = 3.04013e-15, Final residual = 2.98607e-29, No Iterations 1
+Instante atual = 27.5
+
+DICPBiCGStab:  Solving for rho_a, Initial residual = 2.78336e-15, Final residual = 1.34115e-29, No Iterations 1
+Instante atual = 28
+
+DICPBiCGStab:  Solving for rho_a, Initial residual = 3.65021e-15, Final residual = 1.04358e-29, No Iterations 1
+Instante atual = 28.5
+
+DICPBiCGStab:  Solving for rho_a, Initial residual = 3.08943e-15, Final residual = 4.22323e-29, No Iterations 1
+Instante atual = 29
+
+DICPBiCGStab:  Solving for rho_a, Initial residual = 3.30923e-15, Final residual = 7.73976e-30, No Iterations 1
+Instante atual = 29.5
+
+DICPBiCGStab:  Solving for rho_a, Initial residual = 3.51875e-15, Final residual = 5.46043e-29, No Iterations 1
+Instante atual = 30
+
+DICPBiCGStab:  Solving for rho_a, Initial residual = 3.30306e-15, Final residual = 2.06696e-29, No Iterations 1
+Instante atual = 30.5
+
+DICPBiCGStab:  Solving for rho_a, Initial residual = 3.28047e-15, Final residual = 2.54077e-29, No Iterations 1
+Instante atual = 31
+
+DICPBiCGStab:  Solving for rho_a, Initial residual = 3.38112e-15, Final residual = 3.82016e-29, No Iterations 1
+Instante atual = 31.5
+
+DICPBiCGStab:  Solving for rho_a, Initial residual = 2.93126e-15, Final residual = 3.56563e-29, No Iterations 1
+Instante atual = 32
+
+DICPBiCGStab:  Solving for rho_a, Initial residual = 3.77757e-15, Final residual = 1.84182e-29, No Iterations 1
+Instante atual = 32.5
+
+DICPBiCGStab:  Solving for rho_a, Initial residual = 2.84704e-15, Final residual = 2.4849e-29, No Iterations 1
+Instante atual = 33
+
+DICPBiCGStab:  Solving for rho_a, Initial residual = 2.99289e-15, Final residual = 5.00628e-29, No Iterations 1
+Instante atual = 33.5
+
+DICPBiCGStab:  Solving for rho_a, Initial residual = 2.76488e-15, Final residual = 4.54289e-29, No Iterations 1
+Instante atual = 34
+
+DICPBiCGStab:  Solving for rho_a, Initial residual = 2.77926e-15, Final residual = 2.29214e-29, No Iterations 1
+Instante atual = 34.5
+
+DICPBiCGStab:  Solving for rho_a, Initial residual = 2.85731e-15, Final residual = 3.65601e-29, No Iterations 1
+Instante atual = 35
+
+DICPBiCGStab:  Solving for rho_a, Initial residual = 3.2702e-15, Final residual = 3.50964e-29, No Iterations 1
+Instante atual = 35.5
+
+DICPBiCGStab:  Solving for rho_a, Initial residual = 3.15516e-15, Final residual = 3.61487e-29, No Iterations 1
+Instante atual = 36
+
+DICPBiCGStab:  Solving for rho_a, Initial residual = 3.6954e-15, Final residual = 1.36733e-29, No Iterations 1
+Instante atual = 36.5
+
+DICPBiCGStab:  Solving for rho_a, Initial residual = 3.31744e-15, Final residual = 9.32591e-29, No Iterations 1
+Instante atual = 37
+
+DICPBiCGStab:  Solving for rho_a, Initial residual = 3.4715e-15, Final residual = 5.2378e-29, No Iterations 1
+Instante atual = 37.5
+
+DICPBiCGStab:  Solving for rho_a, Initial residual = 3.21474e-15, Final residual = 2.26058e-29, No Iterations 1
+Instante atual = 38
+
+DICPBiCGStab:  Solving for rho_a, Initial residual = 3.09559e-15, Final residual = 2.08206e-29, No Iterations 1
+Instante atual = 38.5
+
+DICPBiCGStab:  Solving for rho_a, Initial residual = 3.30512e-15, Final residual = 8.9033e-30, No Iterations 1
+Instante atual = 39
+
+DICPBiCGStab:  Solving for rho_a, Initial residual = 2.92921e-15, Final residual = 2.54474e-29, No Iterations 1
+Instante atual = 39.5
+
+DICPBiCGStab:  Solving for rho_a, Initial residual = 3.25582e-15, Final residual = 4.88454e-29, No Iterations 1
+Instante atual = 40
+
+DICPBiCGStab:  Solving for rho_a, Initial residual = 3.64816e-15, Final residual = 6.6439e-29, No Iterations 1
+Instante atual = 40.5
+
+DICPBiCGStab:  Solving for rho_a, Initial residual = 3.38523e-15, Final residual = 9.65964e-29, No Iterations 1
+Instante atual = 41
+
+DICPBiCGStab:  Solving for rho_a, Initial residual = 3.0997e-15, Final residual = 9.17678e-29, No Iterations 1
+Instante atual = 41.5
+
+DICPBiCGStab:  Solving for rho_a, Initial residual = 2.81623e-15, Final residual = 8.57855e-30, No Iterations 1
+Instante atual = 42
+
+DICPBiCGStab:  Solving for rho_a, Initial residual = 2.70325e-15, Final residual = 7.43936e-29, No Iterations 1
+Instante atual = 42.5
+
+DICPBiCGStab:  Solving for rho_a, Initial residual = 2.91072e-15, Final residual = 6.08923e-29, No Iterations 1
+Instante atual = 43
+
+DICPBiCGStab:  Solving for rho_a, Initial residual = 3.66254e-15, Final residual = 3.30453e-29, No Iterations 1
+Instante atual = 43.5
+
+DICPBiCGStab:  Solving for rho_a, Initial residual = 3.01548e-15, Final residual = 5.32483e-29, No Iterations 1
+Instante atual = 44
+
+DICPBiCGStab:  Solving for rho_a, Initial residual = 2.85321e-15, Final residual = 2.39896e-29, No Iterations 1
+Instante atual = 44.5
+
+DICPBiCGStab:  Solving for rho_a, Initial residual = 3.35853e-15, Final residual = 1.18197e-29, No Iterations 1
+Instante atual = 45
+
+DICPBiCGStab:  Solving for rho_a, Initial residual = 3.24966e-15, Final residual = 1.25942e-29, No Iterations 1
+Instante atual = 45.5
+
+DICPBiCGStab:  Solving for rho_a, Initial residual = 3.07095e-15, Final residual = 3.61113e-29, No Iterations 1
+Instante atual = 46
+
+DICPBiCGStab:  Solving for rho_a, Initial residual = 2.61698e-15, Final residual = 2.31705e-29, No Iterations 1
+Instante atual = 46.5
+
+DICPBiCGStab:  Solving for rho_a, Initial residual = 3.30512e-15, Final residual = 1.05845e-29, No Iterations 1
+Instante atual = 47
+
+DICPBiCGStab:  Solving for rho_a, Initial residual = 3.25376e-15, Final residual = 4.04879e-29, No Iterations 1
+Instante atual = 47.5
+
+DICPBiCGStab:  Solving for rho_a, Initial residual = 3.58448e-15, Final residual = 4.19785e-29, No Iterations 1
+Instante atual = 48
+
+DICPBiCGStab:  Solving for rho_a, Initial residual = 3.02781e-15, Final residual = 2.48271e-29, No Iterations 1
+Instante atual = 48.5
+
+DICPBiCGStab:  Solving for rho_a, Initial residual = 2.67039e-15, Final residual = 7.60064e-30, No Iterations 1
+Instante atual = 49
+
+DICPBiCGStab:  Solving for rho_a, Initial residual = 3.72005e-15, Final residual = 1.03277e-29, No Iterations 1
+Instante atual = 49.5
+
+DICPBiCGStab:  Solving for rho_a, Initial residual = 2.99083e-15, Final residual = 1.39228e-29, No Iterations 1
+Instante atual = 50
+
+DICPBiCGStab:  Solving for rho_a, Initial residual = 2.78542e-15, Final residual = 4.15741e-29, No Iterations 1
+End
+
