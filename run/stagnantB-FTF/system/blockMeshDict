@@ -1,0 +1,98 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2012                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      blockMeshDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2012                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      blockMeshDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+convertToMeters 1;
+
+vertices
+(
+    (0 0 0)           // V0
+    (0.25 0 0)        // V1
+    (0.25 0.01 0)     // V2
+    (0 0.01 0)        // V3
+    (0 0 1)           // V4
+    (0.25 0 1)        // V5
+    (0.25 0.01 1)     // V6
+    (0 0.01 1)        // V7
+);
+
+blocks
+(
+    hex (0 1 2 3 4 5 6 7) (1 1 100) simpleGrading (1 1 0.05)
+);
+
+edges
+(
+);
+
+boundary
+(
+    bottom
+    {
+        type patch;
+        faces
+        (
+            (0 3 2 1) // face z mínimo (z = 0)
+        );
+    }
+    top
+    {
+        type patch;
+        faces
+        (
+            (4 5 6 7) // face z máximo (z = 1)
+        );
+    }
+    sidesX
+    {
+        type empty;
+        faces
+        (
+            (0 1 5 4) // face x mínimo
+            (2 3 7 6) // face x máximo
+        );
+    }
+    sidesY
+    {
+        type empty;
+        faces
+        (
+            (0 4 7 3) // face y mínimo
+            (1 2 6 5) // face y máximo
+        );
+    }
+);
+
+mergePatchPairs
+(
+);
+
+// ************************************************************************* //
