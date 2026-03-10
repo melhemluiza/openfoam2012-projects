@@ -53,8 +53,8 @@ feature/YYYY-MM-DD-descricao-breve
 
 ## ✅ Status Atual do Projeto
 
-### 📅 Última Reunião: *16/out/2025*
-### 📅 Próxima Reunião: *23/out/2025*
+### 📅 Última Reunião: *13/nov/2025*
+### 📅 Próxima Reunião: *27/nov/2025*
 
 ### ✅ *VALIDADO*
 - Test1 vs Test2 (binaryDiffusionFoam ≡ rhoscalarTransportFoam)
